@@ -80,13 +80,19 @@ const validateUserCreateChaiExpect = (req, res, next) => {
     }
 }
 
-// Userroutes
-router.post('/api/user', validateUserCreateChaiExpect, userController.create)
-router.get('/api/user', userController.getAll)
-router.get('/api/user/:userId', userController.getById)
 
-// Tijdelijke routes om niet bestaande routes op te vangen
-router.put('/api/user/:userId', notFound)
-router.delete('/api/user/:userId', notFound)
+// Userroutes
+//nieuwe user aanmaken
+router.post('/api/user', validateUserCreateChaiExpect, userController.create)
+//lijst van users ophalen
+router.get('/api/user', userController.getAll)
+//user ophalen met id
+router.get('/api/user/:userId', userController.getById)
+//user updaten
+router.put('/api/user/:userId', userController.update);
+//user verwijderen 
+router.delete('/api/user/:id', userController.deleteUser);
+
+
 
 module.exports = router

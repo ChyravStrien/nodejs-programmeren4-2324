@@ -62,9 +62,47 @@ let userController = {
                 })
             }
         })
-    }
+    },
 
     // Todo: Implement the update and delete methods
+    update: (req, res, next) => {
+        const userId = parseInt(req.params.userId)
+        const updatedUser = {
+            id: userId, 
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            email: req.body.email 
+
+        };
+        logger.trace('userController: update', updatedUser);
+        userService.update(userId, updatedUser, (error, success) =>{
+            if(error){
+                return next({
+                    status: error.status,
+                    message: error.status,
+                    data: {}
+                });
+            }
+            if (success){
+                res.status(200).json({
+                    status: success.status,
+                    message: success.message,
+                    data: success.data
+                });
+            }
+        })
+    }, 
+    deleteUser: (req, res) => {
+        const userId = parseInt(req.params.id);
+        userService.delete(userId, (err, message) => {
+            if (err) {
+                logger.error(err);
+                return res.status(err.status || 500).send(err.message || 'Failed to delete user');
+            }
+            logger.trace(message);
+            res.send(message);
+        });
+    }
 }
 
 module.exports = userController

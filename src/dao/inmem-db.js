@@ -60,9 +60,38 @@ const database = {
             // met het toegevoegde item als argument, of null als er een fout is opgetreden
             callback(null, item)
         }, this._delayTime)
-    }
+    }, 
 
     // Voeg zelf de overige database functionaliteit toe
+    updateUserById(id, updatedUser, callback){
+        const index = this._data.findIndex(user => user.id === id);
+        if(index === -1){
+            return callback({message: `Error: User with ID ${id} not found!`}, null);
+        }
+        
+    
+        // Update the user with the provided data
+        this._data[index] = {
+            id: id,
+            firstName: updatedUser.firstName,
+            lastName: updatedUser.lastName,
+            email: updatedUser.email
+        };
+    
+        callback(null, this._data[index]);
+    }, 
+    deleteUserById(id, callback){
+        setTimeout(()=>{
+            let index = this._data.findIndex(user => user.id === id);
+            if (index !== -1){
+            const deletedUser = this._data.splice(index, 1)[0];
+            callback(null, deletedUser);
+         } else {
+             callback({message: "User not found"});
+         }
+
+        }, 1500);
+    }
 }
 
 module.exports = database
