@@ -12,14 +12,16 @@ const database = {
             id: 0,
             firstName: 'Hendrik',
             lastName: 'van Dam',
-            emailAdress: 'hvd@server.nl'
+            emailAdress: 'hvd@server.nl',
+            password: 'secretdonttell'
             // Hier de overige velden uit het functioneel ontwerp
         },
         {
             id: 1,
             firstName: 'Marieke',
             lastName: 'Jansen',
-            emailAdress: 'm@server.nl'
+            emailAdress: 'm@server.nl',
+            password: '12345678'
             // Hier de overige velden uit het functioneel ontwerp
         }
     ],
@@ -75,7 +77,8 @@ const database = {
             id: id,
             firstName: updatedUser.firstName,
             lastName: updatedUser.lastName,
-            email: updatedUser.email
+            email: updatedUser.email,
+            password: updatedUser.password
         };
     
         callback(null, this._data[index]);

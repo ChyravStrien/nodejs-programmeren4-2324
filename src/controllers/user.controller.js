@@ -71,7 +71,8 @@ let userController = {
             id: userId, 
             firstName: req.body.firstName,
             lastName: req.body.lastName,
-            email: req.body.email 
+            email: req.body.email,
+            password: req.body.password 
 
         };
         logger.trace('userController: update', updatedUser);

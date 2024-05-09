@@ -28,7 +28,8 @@ describe('UC201 Registreren als nieuwe user', () => {
             .send({
                 // firstName: 'Voornaam', ontbreekt
                 lastName: 'Achternaam',
-                emailAdress: 'v.a@server.nl'
+                emailAdress: 'v.a@server.nl',
+                password: 'password'
             })
             .end((err, res) => {
                 /**
@@ -56,23 +57,37 @@ describe('UC201 Registreren als nieuwe user', () => {
         .send({
             firstName: 'voornaam',
             lastName: 'achternaam',
-            emailAdress: 'ongeldigemail'
+            emailAddress: 'ongeldigemail',
+            password: 'password'
         })
         .end((err, res) => {
             chai.expect(res).to.have.status(400)
             chai.expect(res).not.to.have.status(200)
             chai.expect(res.body).to.be.a('object')
             chai.expect(res.body).to.have.property('status').equals(400)
-            chai.expect(res.body).to.have.property('message').equals('Missing or incorrect emailAddress field')
+            chai.expect(res.body).to.have.property('message').equals('Invalid emailAddress')
             done()
         })
         
     })
 
-    it.skip('TC-201-3 Niet-valide password', (done) => {
-        //
-        // Hier schrijf je jouw testcase.
-        //
+    it('TC-201-3 Niet-valide password', (done) => {
+        chai.request(server)
+        .post(endpointToTest)
+        .send({
+            firstName: 'voornaam',
+            lastName: 'lastname',
+            emailAddress: 'c.vanstrien@gmail.com',
+            password: 'twee'
+        })
+        .end((err, res) =>{
+            chai.expect(res).to.have.status(400)
+            chai.expect(res).not.to.have.status(200)
+            chai.expect(res.body).to.be.a('object')
+            chai.expect(res.body).to.have.property('status').equals(400)
+            chai.expect(res.body).to.have.property('message').equals('Invalid password')
+
+        })
         done()
     })
 

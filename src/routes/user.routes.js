@@ -62,6 +62,12 @@ const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
 }
+const validatePassword = (password) => {
+    if (password.length < 8) {
+        return false;
+    }
+    return true;
+}
 
 const validateUserCreateChaiExpect = (req, res, next) => {
     try {
@@ -84,7 +90,12 @@ const validateUserCreateChaiExpect = (req, res, next) => {
         chai.expect(req.body.emailAddress).to.not.be.empty
         chai.expect(req.body.emailAddress).to.be.a('string')
         if(!validateEmail(req.body.emailAddress)){
-            throw new Error('Invalid email address');
+            throw new Error('Invalid emailAddress');
+        }
+        assert(req.body.password, 'Missing or incorrect password field')
+        chai.expect(req.body.password).to.not.be.empty
+        if(!validatePassword(req.body.password)){
+            throw new Error('Invalid password');
         }
         logger.trace('User successfully validated')
         next()
