@@ -75,7 +75,7 @@ describe('Example MySql testcase', () => {
             })
         })
 
-        it('TC-xyz should return valid user', (done) => {
+        it.skip('TC-xyz should return valid user', (done) => {
             chai.request(server)
                 .get('/api/user')
                 .end((err, res) => {

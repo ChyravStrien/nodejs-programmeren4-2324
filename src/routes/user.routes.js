@@ -58,6 +58,10 @@ const validateUserCreateChaiShould = (req, res, next) => {
         })
     }
 }
+const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
 
 const validateUserCreateChaiExpect = (req, res, next) => {
     try {
@@ -68,6 +72,20 @@ const validateUserCreateChaiExpect = (req, res, next) => {
             /^[a-zA-Z]+$/,
             'firstName must be a string'
         )
+        assert(req.body.lastName, 'Missing or incorrect lastName field')
+        chai.expect(req.body.lastName).to.not.be.empty
+        chai.expect(req.body.lastName).to.be.a('string')
+        chai.expect(req.body.lastName).to.match(
+            /^[a-zA-Z]+$/,
+            'lastName must be a string'
+        )
+
+        assert(req.body.emailAddress, 'Missing or incorrect emailAddress field')
+        chai.expect(req.body.emailAddress).to.not.be.empty
+        chai.expect(req.body.emailAddress).to.be.a('string')
+        if(!validateEmail(req.body.emailAddress)){
+            throw new Error('Invalid email address');
+        }
         logger.trace('User successfully validated')
         next()
     } catch (ex) {

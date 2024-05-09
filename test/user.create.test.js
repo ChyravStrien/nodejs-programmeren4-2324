@@ -50,8 +50,23 @@ describe('UC201 Registreren als nieuwe user', () => {
             })
     })
 
-    it.skip('TC-201-2 Niet-valide email adres', (done) => {
-        done()
+    it('TC-201-2 Niet-valide email adres', (done) => {
+        chai.request(server)
+        .post(endpointToTest)
+        .send({
+            firstName: 'voornaam',
+            lastName: 'achternaam',
+            emailAdress: 'ongeldigemail'
+        })
+        .end((err, res) => {
+            chai.expect(res).to.have.status(400)
+            chai.expect(res).not.to.have.status(200)
+            chai.expect(res.body).to.be.a('object')
+            chai.expect(res.body).to.have.property('status').equals(400)
+            chai.expect(res.body).to.have.property('message').equals('Missing or incorrect emailAddress field')
+            done()
+        })
+        
     })
 
     it.skip('TC-201-3 Niet-valide password', (done) => {
@@ -67,29 +82,28 @@ describe('UC201 Registreren als nieuwe user', () => {
         //
         done()
     })
-
     it('TC-201-5 Gebruiker succesvol geregistreerd', (done) => {
         chai.request(server)
             .post(endpointToTest)
             .send({
                 firstName: 'Voornaam',
                 lastName: 'Achternaam',
-                emailAdress: 'v.a@server.nl'
+                emailAddress: 'v.a@server.nl'
             })
             .end((err, res) => {
-                res.should.have.status(200)
-                res.body.should.be.a('object')
-
-                res.body.should.have.property('data').that.is.a('object')
-                res.body.should.have.property('message').that.is.a('string')
-
-                const data = res.body.data
-                data.should.have.property('firstName').equals('Voornaam')
-                data.should.have.property('lastName').equals('Achternaam')
-                data.should.have.property('emailAdress')
-                data.should.have.property('id').that.is.a('number')
-
-                done()
-            })
-    })
+                chai.expect(res).to.have.status(200);
+                chai.expect(res.body).to.be.an('object');
+                chai.expect(res.body).to.have.property('data').that.is.an('object');
+                chai.expect(res.body).to.have.property('message').that.is.a('string').equal('User created with id 2.');
+    
+                const data = res.body.data;
+                chai.expect(data).to.have.property('firstName').that.is.a('string').equal('Voornaam');
+                chai.expect(data).to.have.property('lastName').that.is.a('string').equal('Achternaam');
+                chai.expect(data).to.have.property('emailAddress').that.is.a('string').equal('v.a@server.nl');
+                chai.expect(data).to.have.property('id').that.is.a('number');
+    
+                done();
+            });
+    });
+    
 })
