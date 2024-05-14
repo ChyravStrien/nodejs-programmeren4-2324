@@ -68,29 +68,37 @@ let userController = {
     update: (req, res, next) => {
         const userId = parseInt(req.params.userId)
         const updatedUser = {
-            id: userId, 
+            id: userId,
             firstName: req.body.firstName,
             lastName: req.body.lastName,
-            email: req.body.email,
-            password: req.body.password 
+            isActive: req.body.isActive,
+            emailAddress: req.body.emailAddress,
+            password: req.body.password,
+            phoneNumber: req.body.phoneNumber,
+            roles: req.body.roles,
+            street: req.body.street,
+            city: req.body.city
 
         };
         logger.trace('userController: update', updatedUser);
         userService.update(userId, updatedUser, (error, success) =>{
             if(error){
+                logger.error('Error in userService.update', error);
                 return next({
                     status: error.status,
-                    message: error.status,
+                    message: error.message,
                     data: {}
                 });
             }
-            if (success){
-                res.status(200).json({
-                    status: success.status,
-                    message: success.message,
-                    data: success.data
-                });
-            }
+                if(success){
+                    logger.trace('Update success:', success);
+                    res.status(200).json({
+                        status: success.status,
+                        message: success.message,
+                        data: success.data
+                    });
+                }
+                
         })
     }, 
     deleteUser: (req, res) => {
