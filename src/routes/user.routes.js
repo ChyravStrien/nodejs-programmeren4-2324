@@ -4,6 +4,7 @@ const chai = require('chai')
 chai.should()
 const router = express.Router()
 const userController = require('../controllers/user.controller')
+const validateToken = require('./authentication.routes').validateToken;
 const logger = require('../util/logger')
 
 // Tijdelijke functie om niet bestaande routes op te vangen
@@ -82,7 +83,7 @@ const validateUserCreateChaiExpect = (req, res, next) => {
         chai.expect(req.body.lastName).to.not.be.empty
         chai.expect(req.body.lastName).to.be.a('string')
         chai.expect(req.body.lastName).to.match(
-            /^[a-zA-Z]+$/,
+            /^[a-zA-Z\s]+$/,
             'lastName must be a string'
         )
 
@@ -121,6 +122,8 @@ router.get('/api/user/:userId', userController.getById)
 router.put('/api/user/:userId', userController.update);
 //user verwijderen 
 router.delete('/api/user/:id', userController.deleteUser);
+//profiel van user ophalen
+router.get('/api/user/profile', validateToken, userController.getProfile)
 
 
 

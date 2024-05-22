@@ -239,8 +239,48 @@ const userService = {
                 callback(null, `User with ID ${userId} has been successfully deleted.`)
             }
         });
+    },
+    getProfile: (userId, callback) => {
+        logger.info('getProfile userId:', userId)
+
+        db.getConnection(function (err, connection) {
+            if (err) {
+                logger.error(err)
+                callback(err, null)
+                return;
+            }
+
+            connection.query(
+                'SELECT id, firstName, lastName FROM `user` WHERE id = ?',
+                [userId],
+                function (error, results, fields) {
+                    connection.release()
+
+                    if (error) {
+                        logger.error(error)
+                        callback(error, null)
+                    } else {
+                        if(results.length === 0){
+                            callback({
+                                status: 404,
+                                message: `User with ID ${userId} not found`
+                            }, null);
+                        }else{
+                        logger.debug(results)
+                        callback(null, {
+                            message: `Found ${results.length} user.`,
+                            data: results
+                        });
+
+                        }
+                        
+                    }
+                }
+            );
+        });
     }
-}
+
+};
 
 
 module.exports = userService
