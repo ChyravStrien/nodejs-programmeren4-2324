@@ -39,14 +39,14 @@ function validateToken(req, res, next) {
     logger.info('validateToken called')
     logger.trace('Headers:', req.headers)
     // The headers should contain the authorization-field with value 'Bearer [token]'
-    const authHeader = req.headers['authorization'];
+    const authHeader = req.headers.authorization
     if (!authHeader) {
         logger.warn('Authorization header missing!')
         next({
             status: 401,
             message: 'Authorization header missing!',
             data: {}
-        });
+        })
     } else {
         // Strip the word 'Bearer ' from the headervalue
         const token = authHeader.substring(7, authHeader.length)
@@ -55,11 +55,11 @@ function validateToken(req, res, next) {
         jwt.verify(token, jwtSecretKey, (err, payload) => {
             if (err) {
                 logger.warn('Not authorized', err);
-                return next({
+                next({
                     status: 401,
                     message: 'Not authorized!',
                     data: {}
-                });
+                })
             }
             if (payload) {
                 logger.debug('User ID extracted from token:', payload.userId);
