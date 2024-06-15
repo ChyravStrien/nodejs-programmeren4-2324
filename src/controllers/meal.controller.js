@@ -45,7 +45,7 @@ let mealController = {
         });
     },
     getById: (req, res, next) => {
-        const mealId = req.params.id
+        const mealId = req.params.mealId;
         logger.trace('mealController: getById', mealId)
         mealService.getById(mealId, (error, success) => {
             if (error) {
@@ -64,5 +64,26 @@ let mealController = {
             }
         })
     },
+    delete: (req, res, next) => {
+        const mealId = req.params.mealId;
+        const cookId = req.userId;
+        logger.info('Deleting meal: ', mealId);
+        mealService.delete(mealId, cookId, (error, success) => {
+            if (error) {
+                return next({
+                    status: error.status,
+                    message: error.message,
+                    data: {}
+                });
+            }
+            if (success) {
+                res.status(200).json({
+                    status: success.status,
+                    message: success.message,
+                    data: success.data
+                });
+            }
+        });
+    }
 }
 module.exports = mealController;

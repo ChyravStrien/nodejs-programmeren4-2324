@@ -213,5 +213,61 @@ const mealService = {
             })
         })
     }, 
+    delete: (mealId, cookId, callback) => {
+        logger.info('Deleting meal: ', mealId)
+        db.getConnection(function (err, connection) {
+            if (err) {
+                logger.error(err)
+                callback(err, null)
+                return
+            }
+            //cheken of maaltijd bestaan en gemaakt is door user die wil verwijderen
+            const checkQuery = `SELECT cookId FROM meal WHERE id = ${mealId}`;
+            connection.query(checkQuery, (checkError, checkResults) => {
+                if(checkError){
+                    logger.error(checkError)
+                    callback(checkError, null)
+                    return
+                }
+                if (checkResults.length === 0){
+                    //maaltijd bestaat niet
+                    logger.trace(`Meal with id ${mealId} not found`)
+                    callback(null, {
+                        status: 404,
+                        message: `Maaltijd met id ${mealId} niet gevonden`,
+                        data: null
+                    })
+
+                } else {
+                    const mealCookId = checkResults[0].cookId //cookId van de maaltijd uit bovenstaande query
+                    if (mealCookId !== cookId){
+                        //maaltijd is niet gemaakt door de user die wil verwijderen 
+                        logger.trace(`User with id ${cookId} is not the creator of meal with id ${mealId}`)
+                        callback(null, {
+                            status: 403, 
+                            message: `Je hebt geen toestemming om maaltijd met id ${mealId} te verwijderen`,
+                            data: null
+                        })
+                    } else {
+                        //maaltijd bestaat en is gemaakt door user, dus mag verwijdert worden 
+                        const deleteQuery = `DELETE FROM meal WHERE id = ? AND cookId = ?`
+                        connection.query(deleteQuery, [mealId, cookId], (deleteError, deleteResults) => {
+                            if (deleteError){
+                                logger.error(deleteError)
+                                callback(deleteError, null)
+                            } else {
+                                logger.trace(`Deleted meal with id ${mealId}`)
+                                callback(null, {
+                                    message: `Maaltijd met ID ${mealId} is verwijderd`,
+                                    data: null
+                                })
+
+                            }
+                        })
+                    }
+                }
+            })
+        }
+    )}
 }
 module.exports = mealService

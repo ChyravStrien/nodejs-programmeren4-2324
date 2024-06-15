@@ -18,6 +18,7 @@ const notFound = (req, res, next) => {
 
 router.post('/api/meal', validateToken, mealController.create)
 router.get('/api/meal', mealController.getAll)
-router.get('/api/meal/:id', mealController.getById)
+router.get('/api/meal/:mealId', mealController.getById)
+router.delete('/api/meal/:mealId', validateToken, mealController.delete)
 
 module.exports = router;
