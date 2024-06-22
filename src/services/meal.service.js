@@ -18,14 +18,14 @@ const mealService = {
                     meal.isVega || 0,
                     meal.isVegan || 0,
                     meal.isToTakeHome || 1,
-                    meal.dateTime || new Date(), //in case of no date, set to now
+                    new Date(meal.dateTime),
                     meal.maxAmountOfParticipants,
                     meal.price,
                     meal.imageUrl,
                     cookId,
                     meal.name,
                     meal.description,
-                    meal.allergenes || ''
+                    meal.allergenes || '' 
                 ];
                 
             connection.query(query, values, (error, results) => {
@@ -268,6 +268,76 @@ const mealService = {
                 }
             })
         }
-    )}
+    )},
+    update: (mealId, meal, cookId, callback) => {
+        logger.info('Updating meal: ', mealId)
+        db.getConnection(function (err, connection) {
+            if (err) {
+                logger.error(err)
+                callback(err, null)
+                return
+            }
+            //cheken of maaltijd bestaat en gemaakt is door user die wil updaten
+            const checkQuery = `SELECT cookId FROM meal WHERE id = ${mealId}`;
+            connection.query(checkQuery, (checkError, checkResults) => {
+                if(checkError){
+                    logger.error(checkError)
+                    callback(checkError, null)
+                    return
+                }
+                if (checkResults.length === 0){
+                    //maaltijd bestaat niet
+                    logger.trace(`Meal with id ${mealId} not found`)
+                    callback(null, {
+                        status: 404,
+                        message: `Maaltijd met id ${mealId} niet gevonden`,
+                        data: null
+                    })
+                } else {
+                    const mealCookId = checkResults[0].cookId //cookId van de maaltijd uit bovenstaande query
+                    if (mealCookId !== cookId){
+                        //maaltijd is niet gemaakt door de user die wil updaten 
+                        logger.trace(`User with id ${cookId} is not the creator of meal with id ${mealId}`)
+                        callback(null, {
+                            status: 403, 
+                            message: `Je hebt geen toestemming om maaltijd met id ${mealId} te updaten`,
+                            data: null
+                        })
+                } else {
+                    //maaltijd bestaat en is gemaakt door user, dus mag verwijdert worden 
+                    const updateQuery = `UPDATE meal SET isActive = ?, isVega = ?, isVegan = ?, isToTakeHome = ?, dateTime = ?, maxAmountOfParticipants = ?, price = ?, imageUrl = ?, name = ?, description = ?, allergenes = ? WHERE id = ? AND cookId = ?`
+                    const values = [
+                        meal.isActive || 0,
+                        meal.isVega || 0,
+                        meal.isVegan || 0,
+                        meal.isToTakeHome || 1,
+                        new Date(meal.dateTime), //datetime is date meal is served 
+                        meal.maxAmountOfParticipants,
+                        meal.price,
+                        meal.imageUrl, 
+                        meal.name,
+                        meal.description,
+                        meal.allergenes || '',
+                        mealId,
+                        cookId
+                    ]
+                    connection.query(updateQuery, values, (updateError, updateResults) => {
+                        if (updateError){
+                            logger.error(updateError)
+                            callback(updateError, null)
+                        } else {
+                            logger.trace(`Updated meal with id ${mealId}`)
+                            callback(null, {
+                                message: `Maaltijd met ID ${mealId} is geüpdatet`,
+                                data: meal
+                            })
+
+                        }
+                    })
+                }
+            }
+        })
+    }
+)}
 }
 module.exports = mealService
