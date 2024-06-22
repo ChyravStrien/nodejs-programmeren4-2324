@@ -16,24 +16,20 @@ const notFound = (req, res, next) => {
     })
 }
 
-// Input validation functions for user routes
-const validateUserCreate = (req, res, next) => {
-    if (!req.body.emailAdress || !req.body.firstName || !req.body.lastName) {
-        next({
-            status: 400,
-            message: 'Missing email or password',
-            data: {}
-        })
-    }
-    next()
-}
-
 // Input validation function 2 met gebruik van assert
 const validateUserCreateAssert = (req, res, next) => {
     try {
-        assert(req.body.emailAdress, 'Missing email')
         assert(req.body.firstName, 'Missing or incorrect first name')
         assert(req.body.lastName, 'Missing last name')
+        assert(req.body.emailAddress, 'Missing email')
+        assert(validateEmail(req.body.emailAddress), 'Invalid email')
+        assert(req.body.password, 'Missing password')
+        assert(validatePassword(req.body.password), 'Invalid password')
+        assert(req.body.phoneNumber, 'Missing phonenumber')
+        assert(validatePhoneNumber(req.body.phoneNumber), 'Invalid phonenumber')
+        assert(req.body.roles, 'Missing roles')
+        assert(req.body.street, 'Missing street')
+        assert(req.body.city, 'Missing city')
         next()
     } catch (ex) {
         next({
@@ -44,31 +40,20 @@ const validateUserCreateAssert = (req, res, next) => {
     }
 }
 
-// Input validation function 2 met gebruik van assert
-const validateUserCreateChaiShould = (req, res, next) => {
-    try {
-        req.body.firstName.should.not.be.empty.and.a('string')
-        req.body.lastName.should.not.be.empty.and.a('string')
-        req.body.emailAdress.should.not.be.empty.and.a('string').and.match(/@/)
-        next()
-    } catch (ex) {
-        next({
-            status: 400,
-            message: ex.message,
-            data: {}
-        })
-    }
-}
 const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[a-zA-Z](?:\.[a-zA-Z]+)?@[a-zA-Z]{2,}\.[a-zA-Z]{2,3}$/;
     return emailRegex.test(email);
-}
+};
 const validatePassword = (password) => {
-    if (password.length < 8) {
-        return false;
-    }
-    return true;
-}
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/; //?=.* means that it checks for the condition in the brackets and d is for digit
+    return passwordRegex.test(password);
+
+};
+const validatePhoneNumber = (phoneNumber) => {
+    const phoneRegex = /^06[-\s]?\d{8}$/;
+    return phoneRegex.test(phoneNumber);
+};
+
 
 const validateUserCreateChaiExpect = (req, res, next) => {
     try {
@@ -113,7 +98,7 @@ const validateUserCreateChaiExpect = (req, res, next) => {
 
 // Userroutes
 //nieuwe user aanmaken
-router.post('/api/user', validateUserCreateChaiExpect, userController.create)
+router.post('/api/user', validateUserCreateAssert, userController.create)
 //lijst van users ophalen
 router.get('/api/user', userController.getAll)
 //user ophalen met id

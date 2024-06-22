@@ -15,9 +15,13 @@ const port = process.env.PORT || 3000
 app.get('/api/info', (req, res) => {
     console.log('GET /api/info')
     const info = {
-        name: 'My Nodejs Express server',
-        version: '0.0.1',
-        description: 'This is a simple Nodejs Express server'
+        status: 200,
+        message: 'Server info endpoint',
+        data: {
+            studentName: 'Chyra van Strien',
+            studentNumber: '2219603',
+            description: 'Welkom bij de share-a-meal API!'
+        }
     }
     res.json(info)
 })

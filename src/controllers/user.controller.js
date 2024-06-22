@@ -24,24 +24,25 @@ let userController = {
     },
 
     getAll: (req, res, next) => {
-        logger.trace('getAll')
-        userService.getAll((error, success) => {
+        const { isActive } = req.query; //Haal het isActive filter op uit query parameters
+
+        userService.getAll(isActive, (error, result) => {
             if (error) {
                 return next({
-                    status: error.status,
-                    message: error.message,
-                    data: {}
-                })
+                    status: error.status || 500,
+                    message: error.message || 'Internal Server Error',
+                    data: null
+                });
             }
-            if (success) {
-                res.status(200).json({
-                    status: 200,
-                    message: success.message,
-                    data: success.data
-                })
-            }
-        })
+
+            res.status(200).json({
+                status: 200,
+                message: result.message,
+                data: result.data
+            });
+        });
     },
+
 
     getById: (req, res, next) => {
         const userId = req.params.userId

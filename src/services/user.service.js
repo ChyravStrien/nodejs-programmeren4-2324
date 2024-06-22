@@ -6,35 +6,18 @@ const db = require('../dao/mysql-db')
 const userService = {
     create: (user, callback) => {
         logger.info('create user', user)
-        //oude manier met inmemorydb
-        // database.add(user, (err, data) => {
-        //     if (err) {
-        //         logger.info(
-        //             'error creating user: ',
-        //             err.message || 'unknown error'
-        //         )
-        //         callback(err, null)
-        //     } else {
-        //         logger.trace(`User created with id ${data.id}.`)
-        //         callback(null, {
-        //             message: `User created with id ${data.id}.`,
-        //             data: data
-        //         })
-        //     }
-        // })
         db.getConnection(function(err, connection){
             if(err){
                 logger.error(err)
                 callback(err, null)
                 return
             }
-            const query = `INSERT INTO \`user\` (firstName, lastName, isActive, emailAddress, password, phoneNumber, roles, street, city) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            const query = `INSERT INTO \`user\` (firstName, lastName, emailAddress, password, phoneNumber, roles, street, city) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 
             const values = [
                 user.firstName,
                 user.lastName,
-                user.isActive,
                 user.emailAddress,
                 user.password,
                 user.phoneNumber || '', //als er niks is ingevuld, dan leeglaten
@@ -61,64 +44,39 @@ const userService = {
         })
     },
 
-    getAll: (callback) => {
-        logger.info('getAll')
-
-        // // Deprecated: de 'oude' manier van werken, met de inmemory database
-        //  database.getAll((err, data) => {
-        //      if (err) {
-        //          callback(err, null)
-        //      } else {
-        //          callback(null, {
-        //              message: `Found ${data.length} users.`,
-        //              data: data
-        //          })
-        //      }
-        //  })
-
-        //Nieuwe manier van werken: met de MySQL database
-        db.getConnection(function (err, connection) {
+    getAll: (isActive, callback) => {
+        logger.info('getAll');
+        const queryParams = [];
+        let query = 'SELECT id, firstName, lastName FROM `user` WHERE 1=1';
+        
+        if (isActive !== undefined) {
+            query += ' AND isActive = ?';
+            queryParams.push(isActive === 'true' ? 1 : 0); // if status is true then 1 else 0 for false 
+        }
+    
+        db.getConnection((err, connection) => {
             if (err) {
-                logger.error(err)
-                callback(err, null)
-                return
+                logger.error(err);
+                return callback(err, null);
             }
-
-            connection.query(
-                'SELECT id, firstName, lastName FROM `user`',
-                function (error, results, fields) {
-                    connection.release()
-
-                    if (error) {
-                        logger.error(error)
-                        callback(error, null)
-                    } else {
-                        logger.debug(results)
-                        callback(null, {
-                            message: `Found ${results.length} users.`,
-                            data: results
-                        })
-                    }
+    
+            connection.query(query, queryParams, (error, results) => {
+                if (error) {
+                    logger.error(error);
+                    return callback(error, null);
+                } else {
+                    logger.debug(results);
+                    callback(null, {
+                        message: `Found ${results.length} users.`,
+                        data: results
+                    });
                 }
-            )
-        })
+            });
+        });
     },
+    
     getById: (userId, callback) => {
         logger.trace('userService: getById', userId);
-        //inmemory database manier
-        // database.getById(userId, (err, data) => {
-        //     if(err){
-        //         logger.info('error fetching user: ', err.message || 'unknown error');
-        //         callback(err, null);
-        //     } else {
-        //         logger.trace(`User with ID ${userId} found.`);
-        //         callback(null, {
-        //             status: 200,
-        //             message: `User with ID ${userId} found.`,
-        //             data: data
-        //         });
-        //     }
-        // });
         db.getConnection(function (err, connection){
             if(err){
                 logger.error(err)
