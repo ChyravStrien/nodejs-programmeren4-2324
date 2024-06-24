@@ -86,7 +86,7 @@ const userService = {
         });
     },
     
-    getById: (userId, callback) => {
+    getById: (requestingUserId, userId, callback) => {
         logger.trace('userService: getById', userId);
         db.getConnection(function (err, connection){
             if(err){
@@ -95,8 +95,10 @@ const userService = {
                 return
             }
             connection.query(
-                'SELECT id, firstName, lastName FROM `user` WHERE id = ?',
-                [userId],
+                `SELECT id, firstName, lastName, isActive, emailAddress, phoneNumber, roles, street, city, 
+                CASE WHEN id = ? THEN password ELSE NULL END AS password 
+                FROM \`user\` WHERE id = ?`, //als id gelijk is aan requestingUserId, dan geef password terug, anders null
+                [requestingUserId, userId],
                 (error, results)=> {
                     connection.release()
                     if(error){
@@ -104,6 +106,10 @@ const userService = {
                         callback(error, null)
                     } else {
                         if (results.length>0){
+                            const user = results[0]
+                            if(user.password === null){
+                                delete user.password
+                            }
                             logger.trace(`User with id ${userId} found.`)
                             callback(null, {
                                 status: 200,

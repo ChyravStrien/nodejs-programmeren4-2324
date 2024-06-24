@@ -73,9 +73,10 @@ let userController = {
 
 
     getById: (req, res, next) => {
-        const userId = req.params.userId
+        const userId = req.params.userId //id van user die je wilt ophalen
+        const requestingUserId = req.userId
         logger.trace('userController: getById', userId)
-        userService.getById(userId, (error, success) => {
+        userService.getById(requestingUserId, userId, (error, success) => {
             if (error) {
                 return next({
                     status: error.status,

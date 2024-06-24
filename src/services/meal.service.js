@@ -277,7 +277,7 @@ const mealService = {
                 callback(err, null)
                 return
             }
-            //cheken of maaltijd bestaat en gemaakt is door user die wil updaten
+            //checken of maaltijd bestaat en gemaakt is door user die wil updaten
             const checkQuery = `SELECT cookId FROM meal WHERE id = ${mealId}`;
             connection.query(checkQuery, (checkError, checkResults) => {
                 if(checkError){
