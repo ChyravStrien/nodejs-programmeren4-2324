@@ -100,9 +100,9 @@ const validateUserCreateChaiExpect = (req, res, next) => {
 //nieuwe user aanmaken
 router.post('/api/user', validateUserCreateAssert, userController.create)
 //lijst van users ophalen
-router.get('/api/user', userController.getAll)
+router.get('/api/user', validateToken, userController.getAll)
 //user ophalen met id
-router.get('/api/user/:userId', userController.getById)
+router.get('/api/user/:userId', validateToken, userController.getById)
 //user updaten
 router.put('/api/user/:userId', userController.update);
 //user verwijderen 

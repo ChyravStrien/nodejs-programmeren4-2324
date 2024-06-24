@@ -44,15 +44,26 @@ const userService = {
         })
     },
 
-    getAll: (isActive, callback) => {
+    getAll: (filters, callback) => {
         logger.info('getAll');
+        let query = `SELECT id, firstName, lastName, isActive, emailAddress, roles, street, city FROM \`user\` WHERE 1=1`; //1=1 is altijd true, dit maakt het makkelijk om filters toe te voegen aan where clause
         const queryParams = [];
-        let query = 'SELECT id, firstName, lastName FROM `user` WHERE 1=1';
         
-        if (isActive !== undefined) {
-            query += ' AND isActive = ?';
-            queryParams.push(isActive === 'true' ? 1 : 0); // if status is true then 1 else 0 for false 
+        if (filters.isActive !== undefined) {
+            if(filters.isActive === 'true' || filters.isActive === 'false'){
+                query += ' AND isActive = ?';
+                queryParams.push(filters.isActive === 'true' ? 1 : 0); // if status is true then 1 else 0 for false 
+            } else {
+                logger.warn('Invalid value for isActive filter:', filters.isActive);
+                return callback(null,{
+                    status: 400,
+                    message: 'Invalid value for isActive filter',
+                    data: null
+                });
+            }
+          
         }
+        //stel er komt nog een filter bij dan kan je hier nog een if statement toevoegen
     
         db.getConnection((err, connection) => {
             if (err) {
@@ -111,23 +122,6 @@ const userService = {
             )
         })
     }, 
-    // update: (userId, updatedUser, callback) => {
-    //     logger.trace(`userService: update`, updatedUser);
-    //     //inmemory database manier
-    //     // database.updateUserById(userId, updatedUser, (err, updatedUser) =>{
-    //     //     if (err){
-    //     //         logger.info('error updating user: ', err.message || 'unknown error');
-    //     //         callback({
-    //     //             status: 500,
-    //     //             message: 'Failed to update user',
-    //     //         }, null);
-    //     //     } else {
-    //     //         logger.trace(`User with ID ${userId} updated.`);
-    //     //         callback(null, {
-    //     //             status: 200,
-    //     //             message: `User with ID ${userId} updated.`,
-    //     //             data: updatedUser
-    
     update: (userId, updatedUser, callback) => {
         logger.trace('userService: update', updatedUser);
         db.getConnection((err, connection) => {

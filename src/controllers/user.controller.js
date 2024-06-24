@@ -1,6 +1,19 @@
 const userService = require('../services/user.service')
 const logger = require('../util/logger')
 
+const validFilters = ['isActive']; // Array met toegestane filters
+
+//functie om te checken of de filters die worden meegegeven in de query parameters wel toegestane filters zijn
+const validateFilters = (queryParams) => {
+    const keys = Object.keys(queryParams);
+    for (let key of keys) {
+        if (!validFilters.includes(key)) {
+            return { isValid: false, message: `Unknown filter field: ${key}`};
+        }
+    }
+    return { isValid: true };
+}
+
 let userController = {
     create: (req, res, next) => {
         const user = req.body
@@ -24,9 +37,24 @@ let userController = {
     },
 
     getAll: (req, res, next) => {
-        const { isActive } = req.query; //Haal het isActive filter op uit query parameters
+        const queryParams = req.query;
+        const validation = validateFilters(queryParams);
 
-        userService.getAll(isActive, (error, result) => {
+        if(!validation.isValid){
+            return next({
+                status: 400,
+                message: validation.message,
+                data: null
+            });
+        }
+        const filters = {};
+        for (const [key, value] of Object.entries(queryParams)){
+            if(validFilters.includes(key)){
+                filters[key] = value;
+            }
+        }
+
+        userService.getAll(filters, (error, result) => {
             if (error) {
                 return next({
                     status: error.status || 500,
