@@ -15,11 +15,42 @@ const notFound = (req, res, next) => {
         data: {}
     })
 }
+const validateMealCreateAssert = (req, res, next) => {
+    try {
+        assert(req.body.name, 'Missing name')
+        assert(req.body.description, 'Missing description')
+        assert(req.body.price, 'Missing price')
+        assert(req.body.dateTime, 'Missing dateTime')
+        assert(req.body.maxAmountOfParticipants, 'Missing maxAmountOfParticipants')
+        assert(req.body.imageUrl, 'Missing imageUrl')
+        next()
+    } catch (ex) {
+        next({
+            status: 400,
+            message: ex.message,
+            data: {}
+        })
+    }
+}
+const validateMealUpdateAssert = (req, res, next) => {
+    try {
+        assert(req.body.name, 'Missing name')
+        assert(req.body.price, 'Missing price')
+        assert(req.body.maxAmountOfParticipants, 'Missing maxAmountOfParticipants')
+        next()
+    } catch (ex) {
+        next({
+            status: 400,
+            message: ex.message,
+            data: {}
+        })
+    }
+}
 
-router.post('/api/meal', validateToken, mealController.create)
+router.post('/api/meal', validateToken, validateMealCreateAssert, mealController.create)
 router.get('/api/meal', mealController.getAll)
 router.get('/api/meal/:mealId', mealController.getById)
 router.delete('/api/meal/:mealId', validateToken, mealController.delete)
-router.put('/api/meal/:mealId', validateToken, mealController.update)
+router.put('/api/meal/:mealId', validateToken, validateMealUpdateAssert, mealController.update)
 
 module.exports = router;

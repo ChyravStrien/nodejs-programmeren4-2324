@@ -304,36 +304,68 @@ const mealService = {
                             data: null
                         })
                 } else {
-                    //maaltijd bestaat en is gemaakt door user, dus mag verwijdert worden 
-                    const updateQuery = `UPDATE meal SET isActive = ?, isVega = ?, isVegan = ?, isToTakeHome = ?, dateTime = ?, maxAmountOfParticipants = ?, price = ?, imageUrl = ?, name = ?, description = ?, allergenes = ? WHERE id = ? AND cookId = ?`
-                    const values = [
-                        meal.isActive || 0,
-                        meal.isVega || 0,
-                        meal.isVegan || 0,
-                        meal.isToTakeHome || 1,
-                        new Date(meal.dateTime), //datetime is date meal is served 
-                        meal.maxAmountOfParticipants,
-                        meal.price,
-                        meal.imageUrl, 
-                        meal.name,
-                        meal.description,
-                        meal.allergenes || '',
-                        mealId,
-                        cookId
-                    ]
-                    connection.query(updateQuery, values, (updateError, updateResults) => {
-                        if (updateError){
-                            logger.error(updateError)
-                            callback(updateError, null)
-                        } else {
-                            logger.trace(`Updated meal with id ${mealId}`)
+                    //maaltijd bestaat en is gemaakt door user, dus mag geupdatet worden 
+                    const getCurrentValuesQuery = `SELECT * FROM meal WHERE id = ? AND cookId = ?`
+                    connection.query(getCurrentValuesQuery, [mealId, cookId], (getCurrentValuesError, getCurrentValuesResults) => {
+                        if (getCurrentValuesError){
+                            logger.error(getCurrentValuesError)
+                            callback(getCurrentValuesError, null)
+                            return
+                        }
+                        if(getCurrentValuesResults.length === 0){
+                            logger.trace(`Meal with id ${mealId} not found`)
                             callback(null, {
-                                message: `Maaltijd met ID ${mealId} is geüpdatet`,
-                                data: meal
+                                status: 404,
+                                message: `Maaltijd met id ${mealId} niet gevonden`,
+                                data: null
+                            })
+                        } else {
+                            const currentMeal = getCurrentValuesResults[0]
+                            const updateQuery = `UPDATE meal SET isActive = ?, isVega = ?, isVegan = ?, isToTakeHome = ?, dateTime = ?, maxAmountOfParticipants = ?, price = ?, imageUrl = ?, name = ?, description = ?, allergenes = ? WHERE id = ? AND cookId = ?`
+                            const values = [
+                                meal.isActive !== undefined ? meal.isActive : currentMeal.isActive,
+                                meal.isVega !== undefined ? meal.isVega : currentMeal.isVega,
+                                meal.isVegan !== undefined ? meal.isVegan : currentMeal.isVegan,
+                                meal.isToTakeHome !== undefined ? meal.isToTakeHome : currentMeal.isToTakeHome,
+                                meal.dateTime ? new Date(meal.dateTime) : currentMeal.dateTime, //datetime is date meal is served btw hij geeft het verkeerd terug door timezone?
+                                meal.maxAmountOfParticipants, //verplicht 
+                                meal.price, //verplicht
+                                meal.imageUrl !== undefined ? meal.imageUrl : currentMeal.imageUrl, 
+                                meal.name, //verplicht 
+                                meal.description !== undefined ? meal.description : currentMeal.description, 
+                                meal.allergenes !== undefined ? meal.allergenes : currentMeal.allergenes, //als t undefined is dan blijft allergenes hetzelfde anders nieuwe waarde
+                                mealId,
+                                cookId
+                            ]
+                            connection.query(updateQuery, values, (updateError, updateResults) => {
+                                if (updateError){
+                                    logger.error(updateError)
+                                    callback(updateError, null)
+                                } else {
+                                    logger.trace(`Updated meal with id ${mealId}`)
+                                    const getUpdatedMealQuery = `SELECT * FROM meal WHERE id = ? AND cookId = ?`;
+                                    connection.query(getUpdatedMealQuery, [mealId, cookId], (getUpdatedMealError, getUpdatedMealResults) => {
+                                        if(getUpdatedMealError){
+                                            logger.error(getUpdatedMealError)
+                                            callback(getUpdatedMealError, null)
+                                        } else {
+                                            const updatedMeal = getUpdatedMealResults[0]
+                                            callback(null, {
+                                                status: 200,
+                                                message: `Maaltijd met id ${mealId} is geupdatet`,
+                                                data: updatedMeal
+                                            })
+                                        }
+                                    })
+        
+                                }
                             })
 
                         }
+                            
+
                     })
+
                 }
             }
         })
