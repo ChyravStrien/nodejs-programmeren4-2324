@@ -136,15 +136,28 @@ let userController = {
         })
     
     }, 
-    deleteUser: (req, res) => {
-        const userId = parseInt(req.params.id);
-        userService.delete(userId, (err, message) => {
+    deleteUser: (req, res, next) => {
+        const userId = req.params.userId; //user die we willen verwijderen 
+        const requestingUserId = req.userId; //user die de delete actie uitvoert
+        logger.trace('userController: delete', userId);
+        logger.trace('requestingUserId:', requestingUserId);
+        userService.delete(userId, requestingUserId, (err, success) => {
             if (err) {
                 logger.error(err);
-                return res.status(err.status || 500).send(err.message || 'Failed to delete user');
+                return next({
+                    status: err.status,
+                    message: err.message,
+                    data: {}
+                })
             }
-            logger.trace(message);
-            res.send(message);
+            if(success){
+                logger.trace('Delete success:', success);
+                res.status(200).json({
+                    status: success.status,
+                    message: success.message,
+                    data: success.data
+                });
+            }
         });
     }, 
     getProfile: (req, res, next) => {

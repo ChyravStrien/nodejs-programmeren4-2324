@@ -238,17 +238,65 @@ const userService = {
         });
     }
     ,
-    delete: (userId, callback) => {
+    delete: (userId, requestingUserId, callback) => {
         logger.trace(`userService: delete, userId: ${userId}`);
-        database.deleteUserById(userId, (err, deletedUser)=> {
+        db.getConnection((err, connection) => {
             if (err) {
-                logger.info('error deleting user: ', err.message || 'unknown error');
-                callback({status: 500, message: 'Failed to delete user'}, null);
-            } else {
-                logger.trace(`User with ID ${userId} deleted.`);
-                callback(null, `User with ID ${userId} has been successfully deleted.`)
+                logger.error('Error getting DB connection:', err);
+                callback(err, null);
+                return;
             }
-        });
+            const checkQuery = 'SELECT * FROM `user` WHERE id = ?';
+            connection.query(checkQuery, [userId], (error, results) => {
+                if (error) {
+                    logger.error('Error executing query:', error);
+                    connection.release();
+                    callback(error, null);
+                    return;
+                }
+                if(results.length === 0){
+                    connection.release();
+                    callback({
+                        status: 404,
+                        message: `User with ID ${userId} not found.`
+                    }, null);
+                    return;
+                }
+                if(userId.toString() !== requestingUserId.toString()){
+                    connection.release();
+                    callback({
+                        status: 403,
+                        message: 'You are not allowed to delete this user.'
+                    }, null);
+                    return;
+                }
+                //gebriker bestaat en userId is gelijk aan requestingUserId, voer delete-query uit
+                const sql = 'DELETE FROM `user` WHERE id = ?';
+                connection.query(sql, [userId], (error, results) => {
+                    connection.release();
+                    if (error) {
+                        logger.error('Error executing query:', error);
+                        callback(error, null);
+                        return;
+                    }
+                    if(results.affectedRows > 0){
+                        logger.trace(`User with id ${userId} deleted.`);
+                        callback(null, {
+                            status: 200,
+                            message: `User with ID ${userId} deleted.`,
+                            data: null
+                        });
+                    } else {
+                        logger.trace(`User with id ${userId} not found or no changes were made.`);
+                        callback(null, {
+                            status: 404,
+                            message: `User with ID ${userId} not found or no changes were made.`,
+                            data: null
+                        });
+                    }
+                })
+            })
+        })
     },
     getProfile: (userId, callback) => {
         logger.info('getProfile userId:', userId)

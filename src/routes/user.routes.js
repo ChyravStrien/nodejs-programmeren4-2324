@@ -122,7 +122,7 @@ router.get('/api/user/:userId', validateToken, userController.getById)
 //user updaten
 router.put('/api/user/:userId', validateToken, validateUserUpdateAssert, userController.update);
 //user verwijderen 
-router.delete('/api/user/:id', userController.deleteUser);
+router.delete('/api/user/:userId', validateToken, userController.deleteUser);
 //profiel van user ophalen
 router.get('/api/user/profile', validateToken, userController.getProfile)
 
