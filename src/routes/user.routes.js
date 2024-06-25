@@ -54,6 +54,22 @@ const validatePhoneNumber = (phoneNumber) => {
     return phoneRegex.test(phoneNumber);
 };
 
+const validateUserUpdateAssert = (req, res, next) => {
+    try {
+        assert(req.body.emailAddress, 'Missing email') //email is verplicht bij updaten
+        assert(validateEmail(req.body.emailAddress), 'Invalid email')
+        if (req.body.password) assert(validatePassword(req.body.password), 'Invalid password') //alleen als er een password is, dan wordt het gevalideerd
+        if (req.body.phoneNumber) assert(validatePhoneNumber(req.body.phoneNumber), 'Invalid phonenumber') //alleen als er een phonenumber is, dan wordt het gevalideerd
+        next()
+    } catch (ex) {
+        next({
+            status: 400,
+            message: ex.message,
+            data: {}
+        })
+    }
+}
+
 
 const validateUserCreateChaiExpect = (req, res, next) => {
     try {
@@ -104,7 +120,7 @@ router.get('/api/user', validateToken, userController.getAll)
 //user ophalen met id
 router.get('/api/user/:userId', validateToken, userController.getById)
 //user updaten
-router.put('/api/user/:userId', userController.update);
+router.put('/api/user/:userId', validateToken, validateUserUpdateAssert, userController.update);
 //user verwijderen 
 router.delete('/api/user/:id', userController.deleteUser);
 //profiel van user ophalen

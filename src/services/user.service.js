@@ -1,7 +1,7 @@
 //const database = require('../dao/inmem-db')
 const logger = require('../util/logger')
 
-const db = require('../dao/mysql-db')
+const db = require('../dao/mysql-db');
 
 const userService = {
     create: (user, callback) => {
@@ -128,64 +128,98 @@ const userService = {
             )
         })
     }, 
-    update: (userId, updatedUser, callback) => {
-        logger.trace('userService: update', updatedUser);
+    update: (userId, user, requestingUserId, callback) => {
+        logger.trace('userService: update', user);
         db.getConnection((err, connection) => {
             if (err) {
                 logger.error('Error getting DB connection:', err);
                 callback(err, null);
                 return;
             }
-
-            const sql = `
-                UPDATE \`user\`
-                SET firstName = ?, lastName = ?, isActive = ?, emailAddress = ?, password = ?, phoneNumber = ?, roles = ?, street = ?, city = ?
-                WHERE id = ?
-            `;
-            const values = [
-                updatedUser.firstName,
-                updatedUser.lastName,
-                updatedUser.isActive,
-                updatedUser.emailAddress,
-                updatedUser.password,
-                updatedUser.phoneNumber,
-                updatedUser.roles,
-                updatedUser.street,
-                updatedUser.city,
-                userId
-            ];
-
-            logger.trace('SQL Query:', sql);
-            logger.trace('Values:', values);
-
-            connection.query(sql, values, (error, results) => {
-                connection.release();
-
+            const checkQuery = 'SELECT * FROM `user` WHERE id = ?';
+            connection.query(checkQuery, [userId], (error, results) => {
                 if (error) {
                     logger.error('Error executing query:', error);
+                    connection.release();
                     callback(error, null);
                     return;
                 }
-
-                logger.trace('Query Results:', results);
-
-                if (results.affectedRows > 0) {
-                    logger.trace(`User with id ${userId} updated.`);
-                    callback(null, {
-                        status: 200,
-                        message: `User with id ${userId} updated.`,
-                        data: { id: userId, ...updatedUser }
-                    });
-                } else {
-                    logger.warn(`User with id ${userId} not found.`);
+    
+                if (results.length === 0) {
+                    connection.release();
                     callback({
                         status: 404,
-                        message: `User with id ${userId} not found.`,
+                        message: `User with ID ${userId} not found.`
                     }, null);
+                    return;
                 }
+                if (userId.toString() !== requestingUserId.toString()) { //beide omzetten naar string anders gaat vergelijking fout
+                    connection.release();
+                    callback({
+                        status: 403,
+                        message: 'You are not allowed to update this user.' 
+                    }, null);
+                    return;
+                }
+    
+                //gebruiker bestaat en userId is gelijk aan requestingUserId, voer update-query uit
+                const currentUser = results[0];
+                const sql = `
+                    UPDATE \`user\`
+                    SET firstName = ?, lastName = ?, isActive = ?, emailAddress = ?, password = ?, phoneNumber = ?, roles = ?, street = ?, city = ?
+                    WHERE id = ?
+                `;
+                const values = [
+                    user.firstName !== undefined ? user.firstName : currentUser.firstName,
+                    user.lastName !== undefined ? user.lastName : currentUser.lastName,
+                    user.isActive !== undefined ? user.isActive : currentUser.isActive,
+                    user.emailAddress, // verplicht veld
+                    user.password !== undefined ? user.password : currentUser.password,
+                    user.phoneNumber !== undefined ? user.phoneNumber : currentUser.phoneNumber,
+                    user.roles !== undefined ? user.roles : currentUser.roles,
+                    user.street !== undefined ? user.street : currentUser.street,
+                    user.city !== undefined ? user.city : currentUser.city,
+                    userId
+                ];
+    
+                connection.query(sql, values, (error, results) => {
+                    connection.release();
+                    if (error) {
+                        logger.error('Error executing query:', error);
+                        callback(error, null);
+                        return;
+                    }
+    
+                    if (results.affectedRows > 0) {
+                        logger.trace(`User with id ${userId} updated.`);
+                        const getUpdatedUserQuery = 'SELECT * FROM `user` WHERE id = ?'; //nieuwe user ophalen met oude waardes
+                        connection.query(getUpdatedUserQuery, [userId], (error, results) => {
+                            if (error) {
+                                logger.error('Error executing query:', error);
+                                callback(error, null);
+                                return;
+                            }
+    
+                            const updatedUser = results[0];
+                            callback(null, {
+                                status: 200,
+                                message: `User with ID ${userId} updated.`,
+                                data: updatedUser
+                            });
+                        });
+                    } else {
+                        logger.trace(`User with id ${userId} not found or no changes were made.`);
+                        callback(null, {
+                            status: 404,
+                            message: `User with ID ${userId} not found or no changes were made.`,
+                            data: null
+                        });
+                    }
+                });
             });
         });
-    },
+    }
+    ,
     delete: (userId, callback) => {
         logger.trace(`userService: delete, userId: ${userId}`);
         database.deleteUserById(userId, (err, deletedUser)=> {

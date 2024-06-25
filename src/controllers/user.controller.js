@@ -96,22 +96,26 @@ let userController = {
 
     // Todo: Implement the update and delete methods
     update: (req, res, next) => {
-        const userId = parseInt(req.params.userId)
-        const updatedUser = {
-            id: userId,
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
-            isActive: req.body.isActive,
-            emailAddress: req.body.emailAddress,
-            password: req.body.password,
-            phoneNumber: req.body.phoneNumber,
-            roles: req.body.roles,
-            street: req.body.street,
-            city: req.body.city
-
-        };
-        logger.trace('userController: update', updatedUser);
-        userService.update(userId, updatedUser, (error, success) =>{
+        // const userId = parseInt(req.params.userId)
+        // const updatedUser = {
+        //     id: userId,
+        //     firstName: req.body.firstName,
+        //     lastName: req.body.lastName,
+        //     isActive: req.body.isActive,
+        //     emailAddress: req.body.emailAddress,
+        //     password: req.body.password,
+        //     phoneNumber: req.body.phoneNumber,
+        //     roles: req.body.roles,
+        //     street: req.body.street,
+        //     city: req.body.city
+        // };
+        const userId = req.params.userId; //user id van de user die je wilt updaten
+        const user = req.body;
+        const requestingUserId = req.userId;
+        logger.trace('userController: update', user);
+        logger.trace('requestingUserId:', requestingUserId);
+        logger.trace('userId:', userId);
+        userService.update(userId, user, requestingUserId, (error, success) =>{
             if(error){
                 logger.error('Error in userService.update', error);
                 return next({
@@ -130,6 +134,7 @@ let userController = {
                 }
                 
         })
+    
     }, 
     deleteUser: (req, res) => {
         const userId = parseInt(req.params.id);
