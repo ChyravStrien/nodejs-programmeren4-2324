@@ -12,7 +12,23 @@ const userService = {
                 callback(err, null)
                 return
             }
-            const query = `INSERT INTO \`user\` (firstName, lastName, emailAddress, password, phoneNumber, roles, street, city) 
+            const checkQuery = 'SELECT id from `user` WHERE emailAddress = ?'
+            connection.query(checkQuery, [user.emailAddress], (error, results) => {
+                if(error){
+                    logger.error(error)
+                    callback(error, null)
+                    return
+                }
+                if(results.length > 0){
+                    logger.warn('User already exists with this email address')
+                    callback({
+                        status: 400,
+                        message: 'User already exists with this email address',
+                        data: null
+                    }, null)
+                    return
+                }
+                const query = `INSERT INTO \`user\` (firstName, lastName, emailAddress, password, phoneNumber, roles, street, city) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
 
             const values = [
@@ -41,6 +57,8 @@ const userService = {
                     }
                 }
             )
+            })
+            
         })
     },
 
