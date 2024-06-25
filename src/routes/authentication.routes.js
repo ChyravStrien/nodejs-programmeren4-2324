@@ -15,18 +15,31 @@ function validateLogin(req, res, next) {
     // Verify that we receive the expected input
     try {
         assert(
-            typeof req.body.emailAddress === 'string',
-            'email must be a string.'
+            typeof req.body.emailAddress === 'string' && req.body.emailAddress.trim() !== '',
+            'Email address is required and must be a string.'
         )
         assert(
-            typeof req.body.password === 'string',
-            'password must be a string.'
+            typeof req.body.password === 'string' && req.body.password.trim() !== '',
+            'Password is required and must be a string.'
         )
         next()
     } catch (ex) {
         next({
-            status: 409,
+            status: 400,
             message: ex.toString(),
+            data: {}
+        })
+    }
+}
+const validateLoginAssert = (req, res, next) => {
+    try {
+        assert(req.body.emailAddress, 'Missing email')
+        assert(req.body.password, 'Missing password')
+        next()
+    } catch (ex) {
+        next({
+            status: 400,
+            message: ex.message,
             data: {}
         })
     }
@@ -78,6 +91,6 @@ function validateToken(req, res, next) {
     }
 }
 
-routes.post('/login', validateLogin, AuthController.login)
+routes.post('/login', validateLoginAssert, AuthController.login)
 
 module.exports = { routes, validateToken }
