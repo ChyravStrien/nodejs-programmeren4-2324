@@ -22,7 +22,7 @@ const userService = {
                 if(results.length > 0){
                     logger.warn('User already exists with this email address')
                     callback({
-                        status: 400,
+                        status: 403,
                         message: 'User already exists with this email address',
                         data: null
                     }, null)
@@ -51,6 +51,7 @@ const userService = {
                         user.id = results.insertId
                         logger.trace(`User created with id ${user.id}.`)
                         callback(null, {
+                            status: 201,
                             message: `User created with id ${user.id}.`,
                             data: user
                         })
@@ -307,34 +308,37 @@ const userService = {
                 callback(err, null)
                 return;
             }
-
-            connection.query(
-                'SELECT id, firstName, lastName FROM `user` WHERE id = ?',
-                [userId],
-                function (error, results, fields) {
+            const userQuery = 'SELECT id, firstName, lastName, emailAddress, phoneNumber, roles, street, city FROM `user` WHERE id = ?'
+            connection.query(userQuery, [userId], (error, results) => {
+                if(error){
                     connection.release()
-
-                    if (error) {
-                        logger.error(error)
-                        callback(error, null)
-                    } else {
-                        if(results.length === 0){
-                            callback({
-                                status: 404,
-                                message: `User with ID ${userId} not found`
-                            }, null);
-                        }else{
-                        logger.debug(results)
-                        callback(null, {
-                            message: `Found ${results.length} user.`,
-                            data: results
-                        });
-
-                        }
-                        
-                    }
+                    logger.error(error)
+                    return callback({ status: 500, message: 'Error fetching user profile.' }, null)
                 }
-            );
+                if(results.length === 0){
+                    connection.release()
+                    return callback({ status: 404, message: `User with Id ${userId} not found.`}, null)
+                }
+                const user = results[0]
+                const mealsQuery = 'SELECT id, isActive, isVega, isVegan, isToTakeHome, dateTime, maxAmountOfParticipants, price, imageUrl, createDate, updateDate, name, description, allergenes FROM `meal` WHERE cookId = ?'
+                connection.query(mealsQuery, [userId], (error, results) => {
+                    connection.release()
+                    if(error){
+                        logger.error(error)
+                        return callback({ status: 500, message: 'Error fetching user profile.' }, null)
+                    }
+                    const userProfile = {
+                        user: user,
+                        meals: results
+                    }
+                    callback(null, {
+                        status: 200,
+                        message: 'User profile fetched with associated meals.',
+                        data: userProfile
+                        
+                    })
+                })
+            })
         });
     }
 
