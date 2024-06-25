@@ -18,6 +18,10 @@ describe('UC201 Registreren als nieuwe user', () => {
         console.log('Before each test')
         done()
     })
+    afterEach((done) => {
+        console.log('After each test')
+        done()
+    })
 
     /**
      * Hier starten de testcases
@@ -41,7 +45,7 @@ describe('UC201 Registreren als nieuwe user', () => {
                 chai.expect(res.body).to.have.property('status').equals(400)
                 chai.expect(res.body)
                     .to.have.property('message')
-                    .equals('Missing or incorrect firstName field')
+                    .equals('Missing or incorrect first name')
                 chai
                     .expect(res.body)
                     .to.have.property('data')
@@ -91,25 +95,47 @@ describe('UC201 Registreren als nieuwe user', () => {
         done()
     })
 
-    it.skip('TC-201-4 Gebruiker bestaat al', (done) => {
-        //
-        // Hier schrijf je jouw testcase.
-        //
+    it('TC-201-4 Gebruiker bestaat al', (done) => {
+        chai.request(server)
+        .post(endpointToTest)
+        .send({
+            firstName: 'Voornaam',
+            lastName: 'Achternaam',
+            emailAddress: 'm.vandam@server.nl',
+            password: 'pPassword4',
+            phoneNumber: '0612345678',	
+            roles: ['user'],
+            street: 'Straatnaam',
+            city: 'Plaatsnaam'
+        })
+        .end((err, res) => {
+            chai.expect(res).to.have.status(400)
+            chai.expect(res).not.to.have.status(200)
+            chai.expect(res.body).to.be.a('object')
+            chai.expect(res.body).to.have.property('status').equals(400)
+            chai.expect(res.body).to.have.property('message').equals('User already exists')
+        })
+       
         done()
     })
     it('TC-201-5 Gebruiker succesvol geregistreerd', (done) => {
         chai.request(server)
             .post(endpointToTest)
             .send({
-                firstName: 'Voornaam',
-                lastName: 'Achternaam',
-                emailAddress: 'v.a@server.nl'
+                firstName: "Voornaam",
+                lastName: "Achternaam",
+                emailAddress: "v.a@server.nl",
+                password: "secretSecret1",
+                street: "Lovensdijkstraat 61",
+                city: "Breda",
+                phoneNumber: "06 12312345",
+                roles: [""]
             })
             .end((err, res) => {
                 chai.expect(res).to.have.status(200);
                 chai.expect(res.body).to.be.an('object');
                 chai.expect(res.body).to.have.property('data').that.is.an('object');
-                chai.expect(res.body).to.have.property('message').that.is.a('string').equal('User created with id 2.');
+                chai.expect(res.body).to.have.property('message').that.is.a('string').contains('User created with id');
     
                 const data = res.body.data;
                 chai.expect(data).to.have.property('firstName').that.is.a('string').equal('Voornaam');

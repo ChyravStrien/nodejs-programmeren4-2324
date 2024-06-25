@@ -22,7 +22,7 @@ const validateUserCreateAssert = (req, res, next) => {
         assert(req.body.firstName, 'Missing or incorrect first name')
         assert(req.body.lastName, 'Missing last name')
         assert(req.body.emailAddress, 'Missing email')
-        assert(validateEmail(req.body.emailAddress), 'Invalid email')
+        assert(validateEmail(req.body.emailAddress), 'Invalid emailAddress')
         assert(req.body.password, 'Missing password')
         assert(validatePassword(req.body.password), 'Invalid password')
         assert(req.body.phoneNumber, 'Missing phonenumber')
@@ -57,7 +57,7 @@ const validatePhoneNumber = (phoneNumber) => {
 const validateUserUpdateAssert = (req, res, next) => {
     try {
         assert(req.body.emailAddress, 'Missing email') //email is verplicht bij updaten
-        assert(validateEmail(req.body.emailAddress), 'Invalid email')
+        assert(validateEmail(req.body.emailAddress), 'Invalid emailAdress')
         if (req.body.password) assert(validatePassword(req.body.password), 'Invalid password') //alleen als er een password is, dan wordt het gevalideerd
         if (req.body.phoneNumber) assert(validatePhoneNumber(req.body.phoneNumber), 'Invalid phonenumber') //alleen als er een phonenumber is, dan wordt het gevalideerd
         next()
