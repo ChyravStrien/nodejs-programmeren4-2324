@@ -17,7 +17,7 @@ let mealController = {
                 });
             }
             if (success) {
-                res.status(200).json({
+                res.status(201).json({
                     status: success.status,
                     message: success.message,
                     data: success.data

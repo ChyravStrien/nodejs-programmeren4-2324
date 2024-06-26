@@ -36,6 +36,7 @@ const mealService = {
                     meal.id = results.insertId
                     logger.trace(`Created meal with id ${meal.id}`)
                     callback(null, {
+                        status: 201,
                         message: `Meal created with id ${meal.id}`,
                         data: meal
                     })
