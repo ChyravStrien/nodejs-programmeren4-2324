@@ -46,10 +46,6 @@ describe('UC101 Inloggen als user', () => {
         })
         console.log('Before each test')
     })
-    afterEach((done) => {
-        console.log('After each test')
-        done()
-    })
 
     /**
      * Hier starten de testcases
@@ -128,7 +124,7 @@ describe('UC101 Inloggen als user', () => {
             chai.expect(res.body).to.have.property('message').equals('User logged in')
             chai.expect(res.body).to.have.property('data').that.is.a('object')
             chai.expect(res.body.data).to.have.property('token').that.is.a('string')
-            chai.expect(res.body.data).to.have.property('userId').that.is.a('number')
+            chai.expect(res.body.data).to.have.property('id').that.is.a('number')
             chai.expect(res.body.data).to.have.property('firstName').that.is.a('string')
             chai.expect(res.body.data).to.have.property('lastName').that.is.a('string')
         })
