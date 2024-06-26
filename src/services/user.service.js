@@ -308,7 +308,7 @@ const userService = {
                 callback(err, null)
                 return;
             }
-            const userQuery = 'SELECT id, firstName, lastName, emailAddress, phoneNumber, roles, street, city FROM `user` WHERE id = ?'
+            const userQuery = 'SELECT id, firstName, lastName, emailAddress, password, phoneNumber, roles, street, city FROM `user` WHERE id = ?'
             connection.query(userQuery, [userId], (error, results) => {
                 if(error){
                     connection.release()
@@ -320,7 +320,11 @@ const userService = {
                     return callback({ status: 404, message: `User with Id ${userId} not found.`}, null)
                 }
                 const user = results[0]
-                const mealsQuery = 'SELECT id, isActive, isVega, isVegan, isToTakeHome, dateTime, maxAmountOfParticipants, price, imageUrl, createDate, updateDate, name, description, allergenes FROM `meal` WHERE cookId = ?'
+                const mealsQuery = `SELECT id, isActive, isVega, isVegan, isToTakeHome, dateTime,
+                maxAmountOfParticipants, price, imageUrl, createDate, updateDate, name, description, 
+                allergenes 
+                FROM \`meal\` 
+                WHERE cookId = ? AND dateTime > NOW() ORDER BY dateTime ASC`
                 connection.query(mealsQuery, [userId], (error, results) => {
                     connection.release()
                     if(error){

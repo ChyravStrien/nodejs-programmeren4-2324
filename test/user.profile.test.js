@@ -8,6 +8,8 @@ const tracer = require('tracer')
 const db = require('../src/dao/mysql-db')
 const logger = require('../src/util/logger')
 require('dotenv').config()
+const jwt = require('jsonwebtoken')
+const jwtSecretKey = require('../src/util/config').secretkey
 
 chai.should()
 chai.use(chaiHttp)
@@ -22,9 +24,9 @@ const INSERT_USER =
     'INSERT INTO `user` (`id`, `firstName`, `lastName`, `emailAddress`, `password`, `street`, `city` ) VALUES' +
     '(1, "first", "last", "n.ame@server.nl", "secret", "street", "city");'
 
-const endpointToTest = '/api/auth/login'
+const endpointToTest = '/api/user/profile/my'
 
-describe('UC101 Inloggen als user', () => {
+describe('UC203 Opvragen van gebruikersprofiel', () => {
     /**
      * Voorbeeld van een beforeEach functie.
      * Hiermee kun je code hergebruiken of initialiseren.
@@ -54,22 +56,19 @@ describe('UC101 Inloggen als user', () => {
     /**
      * Hier starten de testcases
      */
-    it('TC-101-1 Verplicht veld ontbreekt', (done) => {
+    it('TC-203-1 Ongeldig token', (done) => {
         chai.request(server)
-            .post(endpointToTest)
-            .send({
-                // email: 'e.mail@server.nl', ontbreekt
-                password: 'password'
-            })
+            .get(endpointToTest)
+            .set('Authorization', 'Bearer ' + 'ongeldigtoken')
             .end((err, res) => {
                 /**
                  * Voorbeeld uitwerking met chai.expect
                  */
-                chai.expect(res).to.have.status(400)
+                chai.expect(res).to.have.status(401)
                 chai.expect(res).not.to.have.status(200)
                 chai.expect(res.body).to.be.a('object')
-                chai.expect(res.body).to.have.property('status').equals(400)
-                chai.expect(res.body).to.have.property('message').equals('Missing email')
+                chai.expect(res.body).to.have.property('status').equals(401)
+                chai.expect(res.body).to.have.property('message').equals('Not authorized!')
                 chai
                     .expect(res.body)
                     .to.have.property('data')
@@ -79,58 +78,28 @@ describe('UC101 Inloggen als user', () => {
             })
     })
 
-    it('TC-101-2 Niet-valide password', (done) => {
+    it('TC-203-2 Gebruiker is ingelogd met geldig token', (done) => {
+        const token = jwt.sign({ userId: 1 }, jwtSecretKey, { expiresIn: '1h' })
         chai.request(server)
-        .post(endpointToTest)
-        .send({
-            emailAddress: 'n.ame@server.nl',
-            password: 'twee'
-        })
+        .get(endpointToTest)
+        .set('Authorization', 'Bearer ' + token)
         .end((err, res) =>{
-            chai.expect(res).to.have.status(409)
-            chai.expect(res).not.to.have.status(200)
-            chai.expect(res.body).to.be.a('object')
-            chai.expect(res.body).to.have.property('status').equals(409)
-            chai.expect(res.body).to.have.property('message').equals('User not found or password invalid')
-
-        })
-        done()
-    })
-
-    it('TC-101-3 Gebruiker bestaat niet', (done) => {
-        chai.request(server)
-        .post(endpointToTest)
-        .send({
-            emailAddress: 'r.email@server.nl',
-            password: 'pPassword4',
-        })
-        .end((err, res) => {
-            chai.expect(res).to.have.status(409)
-            chai.expect(res).not.to.have.status(200)
-            chai.expect(res.body).to.be.a('object')
-            chai.expect(res.body).to.have.property('status').equals(409)
-            chai.expect(res.body).to.have.property('message').equals('User not found or password invalid')
-        })
-       
-        done()
-    })
-    it('TC-101-4 Succesvol inloggen', (done) => {
-        chai.request(server)
-        .post(endpointToTest)
-        .send({
-            emailAddress: "n.ame@server.nl",
-            password: "secret"
-        })
-        .end((err, res) => {
             chai.expect(res).to.have.status(200)
+            chai.expect(res).not.to.have.status(400)
             chai.expect(res.body).to.be.a('object')
             chai.expect(res.body).to.have.property('status').equals(200)
-            chai.expect(res.body).to.have.property('message').equals('User logged in')
+            chai.expect(res.body).to.have.property('message').equals('User profile fetched with associated meals.')
             chai.expect(res.body).to.have.property('data').that.is.a('object')
-            chai.expect(res.body.data).to.have.property('token').that.is.a('string')
-            chai.expect(res.body.data).to.have.property('userId').that.is.a('number')
-            chai.expect(res.body.data).to.have.property('firstName').that.is.a('string')
-            chai.expect(res.body.data).to.have.property('lastName').that.is.a('string')
+            chai.expect(res.body.data).to.have.property('user').that.is.a('object')
+            chai.expect(res.body.data.user).to.have.property('id').equals(1)
+            chai.expect(res.body.data.user).to.have.property('firstName').that.is.a('string')
+            chai.expect(res.body.data.user).to.have.property('lastName').that.is.a('string')
+            chai.expect(res.body.data.user).to.have.property('emailAddress').that.is.a('string')
+            chai.expect(res.body.data.user).to.have.property('street').that.is.a('string')
+            chai.expect(res.body.data.user).to.have.property('city').that.is.a('string')
+            chai.expect(res.body.data).to.have.property('meals').that.is.a('array')
+            done()
+
         })
         done()
     })
