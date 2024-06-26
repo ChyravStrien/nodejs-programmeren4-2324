@@ -101,6 +101,5 @@ describe('UC203 Opvragen van gebruikersprofiel', () => {
             done()
 
         })
-        done()
     })
 })

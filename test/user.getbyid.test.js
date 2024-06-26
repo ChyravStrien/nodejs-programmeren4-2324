@@ -66,7 +66,6 @@ describe('UC204 Opvragen van gebruikersprofiel met id', () => {
             .get(endpointToTest(20))
             .set('Authorization', 'Bearer ' + token)
             .end((err, res) => {
-                //chai.expect(res.status).to.equal(404)
                 chai.expect(res.body).to.be.an('object')
                 chai.expect(res.body).to.have.property('message').equals('User with id 20 not found.')
                 chai.expect(res.body).to.have.property('status').equals(404)
