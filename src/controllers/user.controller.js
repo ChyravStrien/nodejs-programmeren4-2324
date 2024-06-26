@@ -1,7 +1,7 @@
 const userService = require('../services/user.service')
 const logger = require('../util/logger')
 
-const validFilters = ['isActive']; // Array met toegestane filters
+const validFilters = ['isActive', 'roles']; // Array met toegestane filters
 
 //functie om te checken of de filters die worden meegegeven in de query parameters wel toegestane filters zijn
 const validateFilters = (queryParams) => {

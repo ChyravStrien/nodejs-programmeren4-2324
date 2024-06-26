@@ -82,6 +82,19 @@ const userService = {
             }
           
         }
+        if (filters.roles !== undefined) {
+            if(filters.roles === 'guest' || filters.roles === 'editor' || filters.roles === 'admin'){
+                query += ' AND roles = ?';
+                queryParams.push(filters.roles);
+            } else {
+                logger.warn('Invalid value for roles filter:', filters.roles);
+                return callback(null,{
+                    status: 400,
+                    message: 'Invalid value for roles filter',
+                    data: null
+                });
+            }
+        }
         //stel er komt nog een filter bij dan kan je hier nog een if statement toevoegen
     
         db.getConnection((err, connection) => {
