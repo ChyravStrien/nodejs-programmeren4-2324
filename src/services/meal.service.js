@@ -259,6 +259,7 @@ const mealService = {
                             } else {
                                 logger.trace(`Deleted meal with id ${mealId}`)
                                 callback(null, {
+                                    status: 200,
                                     message: `Maaltijd met ID ${mealId} is verwijderd`,
                                     data: null
                                 })
