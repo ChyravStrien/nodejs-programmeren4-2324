@@ -180,7 +180,7 @@ const mealService = {
                     updateDate: mealResults[0].updateDate,
                     name: mealResults[0].name,
                     description: mealResults[0].description,
-                    allergens: mealResults[0].allergens,
+                    allergenes: mealResults[0].allergenes,
                     participants: []
                 };
                 const participantQuery = `SELECT mp.mealId, mp.userId, u.firstName AS participantName, u.lastName, u.isActive, u.emailAddress AS participantEmail, u.phoneNumber AS participantPhone, u.roles, u.street, u.city
@@ -193,7 +193,7 @@ const mealService = {
                         logger.error(participantError)
                         callback(participantError, null)
                     } else {
-                        meal.partcipants = participantsResults.map(row => ({
+                        meal.participants = participantsResults.map(row => ({
                             id: row.userId,
                             firstName: row.participantName,
                             lastName: row.lastName,
