@@ -7,7 +7,7 @@
         "build": "npm install",
         "start": "node index.js",
         "dev": "nodemon index.js",
-        "test": "echo \"no test specified\""
+        "test": "node ./node_modules/mocha/bin/mocha --reporter spec --exit"
     },
     "keywords": [
         "nodejs",
@@ -15,7 +15,7 @@
         "avans",
         "programmeren-4"
     ],
-    "author": "Mark van der Velden",
+    "author": "Chyra van Strien",
     "license": "ISC",
     "prettier": {
         "singleQuote": true,
